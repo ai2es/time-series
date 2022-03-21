@@ -4,13 +4,16 @@ from torch import nn
 import torch.nn.functional as F
 
 
+tol = torch.finfo(torch.float32).eps
+
+
 class LinearNormalGamma(nn.Module):
     def __init__(self, in_chanels, out_channels):
         super().__init__()
-        self.linear = nn.Linear(in_chanels, out_channels*4)
+        self.linear = nn.utils.spectral_norm(nn.Linear(in_chanels, out_channels*4))
 
     def evidence(self, x):
-        return torch.log(torch.exp(x) + 1)
+        return  torch.log(torch.clamp(torch.exp(x), min=0) + 1)
 
     def forward(self, x):
         pred = self.linear(x).view(x.shape[0], -1, 4)
@@ -19,10 +22,10 @@ class LinearNormalGamma(nn.Module):
 
 
 def nig_nll(y, gamma, v, alpha, beta):
-    two_blambda = 2 * beta * (1 + v)
-    nll = 0.5 * torch.log(np.pi / v) \
-            - alpha * torch.log(two_blambda) \
-            + (alpha + 0.5) * torch.log(v * (y - gamma) ** 2 + two_blambda) \
+    two_blambda = 2 * beta * (1 + v) + tol
+    nll = 0.5 * torch.log(np.pi / (v + tol)) \
+            - alpha * torch.log(two_blambda + tol) \
+            + (alpha + 0.5) * torch.log(v * (y - gamma) ** 2 + two_blambda + tol) \
             + torch.lgamma(alpha) \
             - torch.lgamma(alpha + 0.5)
 
