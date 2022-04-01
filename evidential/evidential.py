@@ -13,7 +13,7 @@ class LinearNormalGamma(nn.Module):
         self.linear = nn.utils.spectral_norm(nn.Linear(in_chanels, out_channels*4))
 
     def evidence(self, x):
-        return  torch.log(torch.clamp(torch.exp(x), min=0) + 1)
+        return  torch.log(torch.exp(x) + 1)
 
     def forward(self, x):
         pred = self.linear(x).view(x.shape[0], -1, 4)
