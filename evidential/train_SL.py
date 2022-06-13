@@ -10,6 +10,7 @@ from torch.utils.data.dataloader import DataLoader
 from torch.nn import init
 
 from evidential import LinearNormalGamma, evidential_regresssion_loss
+from evidential import EvidentialMarginalLikelihood, EvidenceRegularizer, modified_mse
 
 import joblib
 import yaml, tqdm
@@ -24,7 +25,6 @@ from scipy.stats import pearsonr
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from echo.src.base_objective import BaseObjective
 
-from evidential import EvidentialMarginalLikelihood, EvidenceRegularizer, modified_mse
 
 
 def seed_everything(seed=1234):
@@ -132,7 +132,6 @@ def trainer(conf, trial = False, evaluate = False, verbose = True, device = None
     train_index, test_index = splits[0]
     train_data, test_data = data.iloc[train_index].copy(), data.iloc[test_index].copy() 
 
-    
     # Make N train-valid splits using day as grouping variable
     gsp = GroupShuffleSplit(n_splits=100,  random_state = flat_seed, train_size=0.885)
     splits = list(gsp.split(train_data, groups = train_data["day"]))
